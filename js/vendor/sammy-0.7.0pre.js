@@ -47,7 +47,6 @@
   //      // equivilent to "new Sammy.Application", except appends to apps
   //      Sammy();
   //      Sammy(function() { ... });
-  //
   //      // extends the app at '#main' with function.
   //      Sammy('#main', function() { ... });
   //
@@ -1633,7 +1632,9 @@
     // Same usage as `jQuery.fn.appendTo()` but uses `then()` to ensure order
     appendTo: function(selector) {
       return this.then(function(content) {
-        $(selector).append(content);
+        var $content = $(content);
+        $(selector).append($content);
+        return $content;
       }).trigger('changed', {});
     },
 

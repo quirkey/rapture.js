@@ -7160,7 +7160,6 @@ window.jQuery = window.$ = jQuery;
   //      // equivilent to "new Sammy.Application", except appends to apps
   //      Sammy();
   //      Sammy(function() { ... });
-  //
   //      // extends the app at '#main' with function.
   //      Sammy('#main', function() { ... });
   //
@@ -8746,7 +8745,9 @@ window.jQuery = window.$ = jQuery;
     // Same usage as `jQuery.fn.appendTo()` but uses `then()` to ensure order
     appendTo: function(selector) {
       return this.then(function(content) {
-        $(selector).append(content);
+        var $content = $(content);
+        $(selector).append($content);
+        return $content;
       }).trigger('changed', {});
     },
 
@@ -9997,6 +9998,7 @@ if (!Mustache) {
   };
 
 })(jQuery);
+
 /*!
  * jQuery UI 1.8.13
  *
@@ -10785,21 +10787,31 @@ b.dequeue()})})}})(jQuery);
 (function($) {
 
   var app = Sammy('#container', function() {
-    this.use('Couch')
-        .use('Mustache');
+    this.use('Mustache');
 
     this.template_engine = 'mustache';
 
     var current = {nodes: []};
+    var randomIn = function(max) {
+      return Math.floor(Math.random() * max);
+    };
 
     this.get('/add/:type', function() {
       var node = {
         id: current.nodes.length,
         type: this.params.type,
-        width: Math.floor(Math.random() * 100)
+        width: randomIn(100)
       };
       this.render($('#imagenode'), node)
-          .appendTo('#rapture');
+      .appendTo('#rapture')
+      .then(function(inode) {
+        // place randomly
+        Sammy.log($(inode));
+        $(inode).css({
+          top: randomIn($('#rapture').height()),
+          left: randomIn($('#rapture').innerWidth())
+        }).draggable();
+      })
       this.redirect('');
     });
 
