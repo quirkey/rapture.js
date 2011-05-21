@@ -9,6 +9,8 @@
       [ "jquery.couch", "0.11" ],
       [ "sammy", "0.7.0pre" ],
       [ "sammy.storage", "0.7.0pre"],
+      [ "sammy.couch"],
+      [ "sammy.mustache" ],
       [ "jquery-ui", "1.8.13.custom.min"],
       "js/app"
     ]

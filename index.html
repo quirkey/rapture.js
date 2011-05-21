@@ -4,14 +4,25 @@
   <title>rapture</title>
 
   <link href="css/screen.css" media="screen, projection" rel="stylesheet" type="text/css" />
-  <link href="css/print.css" media="print" rel="stylesheet" type="text/css" />
   <!--[if lt IE 8]>
   <link href="css/ie.css" media="screen, projection" rel="stylesheet" type="text/css" />
   <![endif]-->
 </head>
 <body>
   <div id="container">
+    <h1>RAPTURE.js</h1>
+    <ul>
+      <li><a href="/add/killerbee">Killerbees!</a></li>
+      <li><a href="/add/car">Cars!</a></li>
+    </ul>
+    <div id="rapture">
+    </div>
   </div>
+  <script type="text/mustache" id="imagenode">
+    <div id="{{type}}_{{id}}" class="imagenode imagenode-{{type}}">
+      <img src="img/{{type}}.jpg" width="{{width}}" />
+    </div>
+  </script>
   <script src="js/default.js" type="text/javascript" charset="utf-8"></script>
 </body>
 </html>

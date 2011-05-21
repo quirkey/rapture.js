@@ -4,9 +4,23 @@
 [
   { // rewriting / to index.html
     "from":"/",
-    "to":"index.html",
-    "method":"GET",
-    "query":{}
+    "to":"index.html"
+  },
+  {
+    "from": "*/js/:file",
+    "to": "js/:file"
+  },
+  {
+    "from": "*/css/:file",
+    "to": "css/:file"
+  },
+  {
+    "from": "*/css/:file",
+    "to": "img/:file"
+  },
+  {
+    "from": "push/*",
+    "to": "index.html"
   },
   { // keeping relative urls sane
     "from":"/*",
