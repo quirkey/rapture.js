@@ -15,11 +15,14 @@
 
     this.helpers({
       saveState: function(callback) {
-        var key = hex_sha1(JSON.stringify(current));
+        var ctx = this, key = hex_sha1(JSON.stringify(current));
         Sammy.log('saveState', key, current);
         NodeStore.set(key, current, function() {
           current_key = key;
-          callback(key);
+          if (Sammy.isFunction(callback)) {
+            callback(key);
+          }
+          ctx.redirect('state', key);
         });
       },
       getState: function(key, callback) {
@@ -33,15 +36,21 @@
         for (; i < l; i++) {
           node = current.nodes[i];
           this.render($('#imagenode'), node)
-              .appendTo('#rapture')
-              .send(ctx.setNodePosition, node.id, node.top, node.left);
+          .appendTo('#rapture')
+          .then(function(inode) {
+            inode.draggable({stop: function() {
+              ctx.setNodePosition(inode.attr('data-id'), inode.css('top'), inode.css('left'));
+              ctx.saveState();
+            }});
+          })
+          .send(ctx.setNodePosition, node.id, node.top, node.left);
         }
       },
       setNodePosition: function(id, top, left) {
         var node = current.nodes[id];
         Sammy.log('setNodePosition', id, node, top, left);
         $.extend(node, {top: top, left: left});
-        $('#imagenode_' + id).css({top: top, left: left});
+        $('#imagenode_' + id).css({top: top, left: left}).show();
       }
     });
 
@@ -58,6 +67,7 @@
         });
       }
     });
+
     this.get('/add/:type', function(ctx) {
       var node = {
         id: current.nodes.length,
@@ -72,13 +82,18 @@
         inode.draggable();
         ctx.setNodePosition(node.id, randomIn($('#rapture').height()), randomIn($('#rapture').innerWidth()));
       })
-      .send(ctx.saveState)
+      .then('saveState')
       .then(function(key) {
-        ctx.redirect('state', key);
       });
     });
 
+
     this.get('', function() {
+
+    });
+
+    this.bind('node-drag', function(e, data) {
+      Sammy.log('node-drag', e, data);
 
     });
   });

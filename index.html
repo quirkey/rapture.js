@@ -10,7 +10,7 @@
 </head>
 <body>
   <div id="container">
-    <h1>RAPTURE.js</h1>
+    <h1>Rapture.js</h1>
     <ul>
       <li><a href="/add/killerbee">Killerbees!</a></li>
       <li><a href="/add/car">Cars!</a></li>
@@ -19,7 +19,7 @@
     </div>
   </div>
   <script type="text/mustache" id="imagenode">
-    <div id="imagenode_{{id}}" class="imagenode imagenode-{{type}}">
+    <div data-id="{{id}}" id="imagenode_{{id}}" style="display:none;" class="imagenode imagenode-{{type}}">
       <img src="img/{{type}}.jpg" width="{{width}}" />
     </div>
   </script>
