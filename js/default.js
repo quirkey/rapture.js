@@ -10841,7 +10841,7 @@ b.dequeue()})})}})(jQuery);
         Sammy.log('setNodePosition', id, node, top, left);
         $.extend(node, {top: top, left: left});
         $('#imagenode_' + id).css({top: top, left: left}).show();
-        if (Sammy.isFunction(callback)) callback(node);
+        if (Sammy.isFunction(callback)) { callback(node); }
       }
     });
 
@@ -10888,3 +10888,4 @@ b.dequeue()})})}})(jQuery);
   });
 
 })(jQuery);
+
