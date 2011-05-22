@@ -15,11 +15,11 @@
     "to": "css/:file"
   },
   {
-    "from": "*/css/:file",
+    "from": "*/img/:file",
     "to": "img/:file"
   },
   {
-    "from": "push/*",
+    "from": "state/*",
     "to": "index.html"
   },
   { // keeping relative urls sane

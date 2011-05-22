@@ -9168,21 +9168,21 @@ window.jQuery = window.$ = jQuery;
   Sammy.extend(Sammy.Store.Memory.prototype, {
     isAvailable: function() { return true; },
     exists: function(key, callback) {
-      return _invoke(callback, false, this.store.hasOwnProperty(key));
+      return _invoke(callback, this, this.store.hasOwnProperty(key));
     },
     set: function(key, value, callback) {
-      return _invoke(callback, false, this.store[key] = value, key);
+      return _invoke(callback, this, this.store[key] = value, key);
     },
     get: function(key, callback) {
-      return _invoke(callback, false, this.store[key]);
+      return _invoke(callback, this, this.store[key]);
     },
     clear: function(key, callback) {
       delete Sammy.Store.Memory.store[this.name][key];
-      return _invoke(callback, false, key);
+      return _invoke(callback, this, key);
     },
     clearAll: function(callback) {
       this.store = Sammy.Store.Memory.store[this.name] = {};
-      return _invoke(callback, false, true);
+      return _invoke(callback, this, true);
     }
   });
 
@@ -9211,12 +9211,12 @@ window.jQuery = window.$ = jQuery;
     },
     exists: function(key, callback) {
       this.get(key, function(val) {
-        _invoke(callback, false, val !== null);
+        _invoke(callback, this, val !== null);
       });
     },
     set: function(key, value, callback) {
       this.storage.setItem(this._key(key), value);
-      _invoke(callback, false, value, key);
+      _invoke(callback, this, value, key);
     },
     get: function(key, callback) {
       var value = this.storage.getItem(this._key(key));
@@ -9225,11 +9225,11 @@ window.jQuery = window.$ = jQuery;
       if (value && typeof value.value != "undefined") {
         value = value.value;
       }
-      _invoke(callback, false, value);
+      _invoke(callback, this, value);
     },
     clear: function(key, callback) {
       this.storage.removeItem(this._key(key));
-      _invoke(callback, false, key);
+      _invoke(callback, this, key);
     },
     clearAll: function(callback) {
       var i = 0,
@@ -9244,7 +9244,7 @@ window.jQuery = window.$ = jQuery;
           }
         } catch(e) {}
       }
-      _invoke(callback, false, true);
+      _invoke(callback, this, true);
     },
     _key: function(key) {
       return [this.key_prefix, key].join('.');
@@ -9294,7 +9294,7 @@ window.jQuery = window.$ = jQuery;
     },
     exists: function(key, callback) {
       this.get(key, function(val) {
-        _invoke(callback, false, val !== null);
+        _invoke(callback, this, val !== null);
       });
     },
     set: function(key, value, callback) {
@@ -10792,27 +10792,76 @@ b.dequeue()})})}})(jQuery);
     this.template_engine = 'mustache';
 
     var current = {nodes: []};
+    var current_key = null;
     var randomIn = function(max) {
       return Math.floor(Math.random() * max);
     };
 
-    this.get('/add/:type', function() {
+    var NodeStore = new Sammy.Store({name: 'node-store', type: 'local'});
+
+    this.helpers({
+      saveState: function(callback) {
+        var key = hex_sha1(JSON.stringify(current));
+        Sammy.log('saveState', key, current);
+        NodeStore.set(key, current, function() {
+          current_key = key;
+          callback(key);
+        });
+      },
+      getState: function(key, callback) {
+        NodeStore.get(key, callback);
+      },
+      buildState: function() {
+        $('#rapture').html('');
+        var ctx = this;
+        var i = 0, l = current.nodes.length, node;
+        Sammy.log('buildState', current);
+        for (; i < l; i++) {
+          node = current.nodes[i];
+          this.render($('#imagenode'), node)
+              .appendTo('#rapture')
+              .send(ctx.setNodePosition, node.id, node.top, node.left);
+        }
+      },
+      setNodePosition: function(id, top, left) {
+        var node = current.nodes[id];
+        Sammy.log('setNodePosition', id, node, top, left);
+        $.extend(node, {top: top, left: left});
+        $('#imagenode_' + id).css({top: top, left: left});
+      }
+    });
+
+    this.get('/state/:key', function(ctx) {
+      if (current_key != this.params.key) {
+        this.getState(this.params.key, function(state) {
+          if (state) {
+            current_key = ctx.params.key;
+            current = state;
+            ctx.buildState();
+          } else {
+            ctx.redirect('');
+          }
+        });
+      }
+    });
+    this.get('/add/:type', function(ctx) {
       var node = {
         id: current.nodes.length,
         type: this.params.type,
         width: randomIn(100)
       };
+      current.nodes.push(node);
       this.render($('#imagenode'), node)
       .appendTo('#rapture')
       .then(function(inode) {
         // place randomly
-        Sammy.log($(inode));
-        $(inode).css({
-          top: randomIn($('#rapture').height()),
-          left: randomIn($('#rapture').innerWidth())
-        }).draggable();
+        inode.draggable();
+        ctx.setNodePosition(node.id, randomIn($('#rapture').height()), randomIn($('#rapture').innerWidth()));
       })
-      this.redirect('');
+      .send(ctx.saveState)
+      .then(function(key) {
+        ctx.redirect('state', key);
+      });
     });
 
     this.get('', function() {
