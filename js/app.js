@@ -28,6 +28,18 @@
       getState: function(key, callback) {
         NodeStore.get(key, callback);
       },
+      buildNode: function(node) {
+        var ctx = this;
+        return this.render($('#imagenode'), node)
+        .appendTo('#rapture')
+        .then(function(inode) {
+          inode.draggable({stop: function() {
+            ctx.setNodePosition(inode.attr('data-id'), inode.css('top'), inode.css('left'));
+            ctx.saveState();
+          }});
+        })
+        .send(ctx.setNodePosition, node.id, node.top, node.left);
+      },
       buildState: function() {
         $('#rapture').html('');
         var ctx = this;
@@ -35,22 +47,15 @@
         Sammy.log('buildState', current);
         for (; i < l; i++) {
           node = current.nodes[i];
-          this.render($('#imagenode'), node)
-          .appendTo('#rapture')
-          .then(function(inode) {
-            inode.draggable({stop: function() {
-              ctx.setNodePosition(inode.attr('data-id'), inode.css('top'), inode.css('left'));
-              ctx.saveState();
-            }});
-          })
-          .send(ctx.setNodePosition, node.id, node.top, node.left);
+          this.buildNode(node);
         }
       },
-      setNodePosition: function(id, top, left) {
+      setNodePosition: function(id, top, left, callback) {
         var node = current.nodes[id];
         Sammy.log('setNodePosition', id, node, top, left);
         $.extend(node, {top: top, left: left});
         $('#imagenode_' + id).css({top: top, left: left}).show();
+        if (Sammy.isFunction(callback)) callback(node);
       }
     });
 
@@ -72,19 +77,13 @@
       var node = {
         id: current.nodes.length,
         type: this.params.type,
-        width: randomIn(100)
+        top: randomIn($('#rapture').height()),
+        left: randomIn($('#rapture').innerWidth()),
+        width: randomIn(130)
       };
       current.nodes.push(node);
-      this.render($('#imagenode'), node)
-      .appendTo('#rapture')
-      .then(function(inode) {
-        // place randomly
-        inode.draggable();
-        ctx.setNodePosition(node.id, randomIn($('#rapture').height()), randomIn($('#rapture').innerWidth()));
-      })
-      .then('saveState')
-      .then(function(key) {
-      });
+      this.buildNode(node)
+      .then('saveState');
     });
 
 
